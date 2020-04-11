@@ -1,0 +1,149 @@
+<!doctype html>
+<html>
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap 4 CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <title>Mastermind</title>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="mastermind.js"></script>
+    
+    <style>
+        .sticky 
+        {
+            height: 100%; /* 100% if you want full-height; auto if you want "auto" height */
+            width:180px; /* Set the width of the sidebar */
+            position: fixed; /* Fixed Sidebar (stay in place on scroll) */
+            z-index: 1; /* Stay on top */
+            top: 0; /* Stay at the top */
+            left: 0;
+            background-color: black; /* Black */
+            overflow-x: hidden; /* Disable horizontal scroll */
+            padding-top: 20px;
+        }
+
+        .active-hole /* a hole on the edited row */
+        {
+			background-color: antiquewhite;
+        }
+
+        .inactive-hole /* any hole not on the edited row */ 
+        {
+			background-color: white;
+        }
+    </style>
+</head>
+<body>
+    <svg height="0" width="0"><!-- Just SVG definitions -->
+        <defs>
+            <radialGradient id="greyGradient" cx="20%" cy="20%" r="80%" fx="35%" fy="35%">
+              <stop offset="0%" style="stop-color:rgb(255,255,255);stop-opacity:0" />
+              <stop offset="100%" style="stop-color:rgb(0,0,0);stop-opacity:0.5" />
+            </radialGradient>
+            <radialGradient id="redGradient" cx="20%" cy="20%" r="80%" fx="35%" fy="35%">
+              <stop offset="0%" style="stop-color:rgb(255,255,255);stop-opacity:0.9" />
+              <stop offset="100%" style="stop-color:rgb(255,0,0);stop-opacity:1" />
+            </radialGradient>
+            <radialGradient id="yellowGradient" cx="20%" cy="20%" r="80%" fx="35%" fy="35%">
+              <stop offset="0%" style="stop-color:rgb(255,255,255);stop-opacity:0.9" />
+              <stop offset="100%" style="stop-color:rgb(220, 220, 7);stop-opacity:1" />
+            </radialGradient>
+            <radialGradient id="blueGradient" cx="20%" cy="20%" r="80%" fx="35%" fy="35%">
+              <stop offset="0%" style="stop-color:rgb(255,255,255);stop-opacity:0.9" />
+              <stop offset="100%" style="stop-color:rgb(0,0,255);stop-opacity:1" />
+            </radialGradient>
+            <radialGradient id="greenGradient" cx="20%" cy="20%" r="80%" fx="35%" fy="35%">
+              <stop offset="0%" style="stop-color:rgb(255,255,255);stop-opacity:0.9" />
+              <stop offset="100%" style="stop-color:rgb(8, 168, 8);stop-opacity:1" />
+            </radialGradient>
+            <radialGradient id="mauveGradient" cx="20%" cy="20%" r="80%" fx="35%" fy="35%">
+              <stop offset="0%" style="stop-color:rgb(255,255,255);stop-opacity:0.9" />
+              <stop offset="100%" style="stop-color:rgb(129, 60, 175);stop-opacity:1" />
+            </radialGradient>
+            <radialGradient id="orangeGradient" cx="20%" cy="20%" r="80%" fx="35%" fy="35%">
+                <stop offset="0%" style="stop-color:rgb(255,255,255);stop-opacity:0.9" />
+                <stop offset="100%" style="stop-color:rgb(255,165,0);stop-opacity:1" />
+            </radialGradient>
+            <radialGradient id="brownGradient" cx="20%" cy="20%" r="80%" fx="35%" fy="35%">
+                <stop offset="0%" style="stop-color:rgb(255,255,255);stop-opacity:0.9" />
+                <stop offset="100%" style="stop-color:rgb(139,69,19);stop-opacity:1" />
+            </radialGradient>
+            <radialGradient id="tealGradient" cx="20%" cy="20%" r="80%" fx="35%" fy="35%">
+                <stop offset="0%" style="stop-color:rgb(255,255,255);stop-opacity:0.9" />
+                <stop offset="100%" style="stop-color:rgb(0,128,128);stop-opacity:1" />
+            </radialGradient>
+        </defs>
+    </svg>
+    <div id="sidePanel" class="sticky"></div>
+    <div class="container=fluid">
+        <div class="row">
+            <div class="col-sm-2"></div>
+            <div id="shieldRow" class="col-sm-10"></div>    
+        </div>
+        <div class="row"">
+            <div class="col-sm-2"></div>
+            <div id="decodingArea" class="col-sm-10"></div>
+        </div>
+
+        <!-- The game-over modal -->
+        <div class="modal fade" id="gameOverModal">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+            
+              <!-- Modal Header -->
+              <div class="modal-header">
+                <h4 class="modal-title modal-title-gameover"></h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+              </div>
+              
+              <!-- Modal body -->
+              <div class="modal-body modal-body-gameover">
+              </div>
+              
+              <!-- Modal footer -->
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- The help modal -->
+        <div class="modal fade" id="helpModal">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+            
+              <!-- Modal Header -->
+              <div class="modal-header">
+                <h4 class="modal-title">Mastermind Rules</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+              </div>
+              
+              <!-- Modal body -->
+              <div class="modal-body">
+				Come on, you know the rules!<br />
+				Anyway, here's a reminder: <a href="https://en.wikipedia.org/wiki/Mastermind_(board_game)" target="_blank">Mastermind on Wikipedia</a>.<br />
+				You have to guess the colored pattern hidden by the question marks at the top. Note that the pattern contains distinct colors; there are no duplicates in the pattern.<br />
+				Click on the colored pegs in the side panel to place them in the decoding area. Once a row is full, click on <button type="button" class="m-2 btn btn-success btn-sm" disabled">&#10003;</button> to check your guess.<br />
+				If you want to undo the last move, click on the peg you placed in the decoding area or on <button type="button" class="m-2 btn btn-danger btn-sm" disabled">&#10007;</button>.<br />
+              </div>
+              
+              <!-- Modal footer -->
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              </div>
+
+            </div>
+          </div>
+        </div>    
+    </div>
+</body>
+</html>
